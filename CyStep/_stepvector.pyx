@@ -41,29 +41,35 @@ cdef class StepVector:
                 if index.stop > self.stop:
                     raise IndexError("stop too large")
                 stop = index.stop
-            self.c_step.set_value(start, stop - 1, PyRef(<PyPtr>value))
-        # Note the "-1": The C++ object uses closed intervals, but we follow
-        # Python convention here and use half-open ones.
+            # Note the "-1": The C++ object uses closed intervals, but we follow
+            # Python convention here and use half-open ones.
+            self.c_step.set_value(start, stop-1, PyRef(<PyPtr>value))
         else:
             self.c_step.set_value(index, index, PyRef(<PyPtr>value))
 
     def get_steps(self, values_only = False, merge_steps = True):
-        cdef ccmap[long int, PyRef].const_iterator startvals
-        cdef ccpair[long int, PyRef] pair
-
+        cdef _StepVector[PyRef].const_iterator startvals
+        cdef set value, prevval
         startvals = self.c_step.get_values(self.start)
         prevstart = self.start
-        prevval = <object>deref(inc(startvals)).second.get()
+
+        # Iterator bounds check until a better solution is written
+        if startvals == self.c_step.end():
+            yield (self.start, self.stop, set())
+            return
+        else:
+            prevval = <set>deref(startvals).second.get()
+            inc(startvals)
 
         while startvals != self.c_step.end():
             pair = deref(startvals)
-            stepstart, value = <long int>pair.first, <object>pair.second.get()
+            stepstart, value = <long int>pair.first, <set>pair.second.get()
             inc(startvals)
             if merge_steps and value == prevval:
                 continue
             if self.stop is not None and stepstart >= self.stop:
                 if not values_only:
-                    yield (prevstart, self.stop, prevval)
+                    yield prevstart, self.stop, prevval
                 else:
                     yield prevval
                 return
@@ -80,6 +86,8 @@ cdef class StepVector:
 
     def __getitem__(self, index):
         cdef StepVector res
+        cdef int start
+        cdef int stop
 
         if isinstance(index, slice):
             if index.step is not None and index.step != 1:
@@ -102,7 +110,7 @@ cdef class StepVector:
             res.stop = stop
             return res
         else:
-            return <object>deref(inc(self.c_step.get_values(index))).second.get()
+            return <set>deref(self.c_step.get_values(index)).second.get()
 
     def __iter__(self):
         for start, stop, value in self.get_steps():
@@ -123,7 +131,23 @@ cdef class StepVector:
             stop_s, self.num_steps())
 
     def typecode(self):
-        return self._typecode
+        return chr(self._typecode)
+
+    @property
+    def start(self):
+        return self.start
+
+    @property
+    def stop(self):
+        return self.stop
+
+    @start.setter
+    def start(self, value):
+        self.start = value
+
+    @stop.setter
+    def stop(self, value):
+        self.stop = value
 
     def __len__(self):
         return self.stop - self.start
