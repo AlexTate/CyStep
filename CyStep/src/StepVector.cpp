@@ -14,10 +14,6 @@ template <class T> const T _StepVector<T>::operator[](long int i) const {
     return it->second;
 }
 
-template <class T> long int _StepVector<T>::num_values() const {
-    return m.size();
-}
-
 template <class T>
 void _StepVector<T>::set_value(long int from, long int to, T value) {
     if (from > to)
@@ -160,6 +156,11 @@ _StepVector<T>::get_values(long int from) const {
     return --m.upper_bound(from);
 }
 
+template< class T >
+long int _StepVector<T>::num_values( ) const{
+  return this->m.size();
+}
+
 template <class T>
 typename _StepVector<T>::const_iterator
 _StepVector<T>::begin() const {
@@ -171,3 +172,48 @@ typename _StepVector<T>::const_iterator
 _StepVector<T>::end() const {
     return m.end();
 }
+
+//template<class T>
+//iterator::iterator(){
+//    current = m.begin()
+//    last = m.end()
+//}
+//
+//template<class T>
+//iterator::iterator(typename const_iterator from){
+//    current = from
+//    last = m.end()
+//}
+//
+//template<class T>
+//std::pair<long int, T>& iterator::operator*(){return current;}
+//
+//template<class T>
+//iterator iterator::operator++(){
+//    if (current == last){
+//        PyErr_SetString(PyExc_StopIteration, "Reached StepVector end");
+//        return NULL;
+//    } else {
+//        return *current++;
+//    }
+//}
+//
+//template<class T>
+//iterator iterator::operator--(){
+//    if (current == begin()){
+//        PyErr_SetString(PyExc_StopIteration, "Reached StepVector start");}
+//        return NULL;
+//    } else {
+//        return *current--;
+//    }
+//}
+//
+//template<class T>
+//bool iterator::operator==(const iterator other){
+//    return current == other.current;
+//}
+//
+//template<class T>
+//bool iterator::operator!=(const iterator other){
+//    return current != other.current;
+//}
