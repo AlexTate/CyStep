@@ -12,6 +12,14 @@ cdef class StepVector:
         self.start = start_index
         self.stop = start_index + length
 
+    @staticmethod
+    cdef void _construct_wrapper(StepVector obj):
+        obj.c_step = new _StepVector[PyRef]()
+
+    @staticmethod
+    cdef void _set_wrapper(StepVector obj, _StepVector[PyRef] *ref):
+        obj.c_step = ref
+
     def __setitem__(self, index, value):
         if isinstance(value, StepVector):
             if value.start == index.start and value.stop == index.stop:
@@ -88,9 +96,8 @@ cdef class StepVector:
                 if index.stop > self.stop:
                     raise IndexError("stop too large")
                 stop = index.stop
-            res = self.__class__()
-            res._typecode = self.typecode
-            res.c_step = self.c_step
+            res = StepVector(stop - start, 'O', start)
+            StepVector._set_wrapper(res, self.c_step)
             res.start = start
             res.stop = stop
             return res

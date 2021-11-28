@@ -3,7 +3,6 @@
 
 from cpython.ref cimport PyObject
 from libcpp.map cimport map as ccmap
-from libcpp.pair cimport pair as ccpair
 
 ctypedef PyObject* PyPtr
 
@@ -19,29 +18,38 @@ cdef extern from "src/StepVector.cpp":
 
 cdef extern from "src/StepVector.h" namespace "sparse_vectors":
     cdef cppclass _StepVector[T]:
+        ctypedef ccmap[long int, T].const_iterator const_iterator
+
         _StepVector() except +
 
         long int min_index
         long int max_index
 
-        ctypedef ccmap[long int, T].const_iterator const_iterator
         T operator[](long int i) const
         void set_value(long int start, long int end, T value) except +
         void add_value(long int start, long int end, T value) except +
         void apply_to_values(long int start, long int end, void (*func)(T &val))
-        long num_values() const
+        long int num_values() const
         const_iterator get_values(long int start) const
         const_iterator begin() const
         const_iterator end() const
-
-        # Todo: add
-        #  - get_all_values()
-        #  - next()
+        # cppclass iterator: might be a good idea to implement at some point, but the responsibility shifted to
+        #  Python space is extremely minimal from a performance perspective
+        #     const_iterator it
+        #     iterator()
+        #     iterator(iterator &it)
+        #     ccpair[long int, T]& operator *()
+        #     iterator operator++()
+        #     iterator operator--()
+        #     bint operator ==(iterator)
+        #     bint operator !=(iterator)
 
 cdef class StepVector:
-    cdef _StepVector[PyRef] * c_step
+    cdef _StepVector[PyRef] *c_step
     cdef long int start
     cdef long int stop
     cdef char _typecode
-    # cdef dict __dict__
-    # cdef _set_stepvector(self, _StepVector[PyRef] * step)
+    @staticmethod
+    cdef void _construct_wrapper(StepVector obj)
+    @staticmethod
+    cdef void _set_wrapper(StepVector obj, _StepVector[PyRef] *ref)
