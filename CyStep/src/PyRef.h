@@ -1,4 +1,5 @@
 #include "Python.h"
+#include <iostream>
 
 namespace PyPtr {
     class PyRef {
@@ -8,35 +9,43 @@ namespace PyPtr {
             PyObject* get() const {return obj;}
 
             PyRef() {
+                //std::cout << "Default ctor" << std::endl;
                 obj = PySet_New(NULL);
                 Py_XINCREF(obj);
             }
 
             PyRef(PyObject* set_obj) : obj(set_obj) {
+                //std::cout << "Obj ctor" << std::endl;
                 Py_XINCREF(set_obj);
             }
 
             ~PyRef() {
-                Py_XDECREF(obj);obj = NULL;
+                //std::cout << "Destructor" << std::endl;
+                Py_XDECREF(obj); obj = NULL;
             }
 
-            PyRef(const PyRef& other) : obj(other.obj)  {
-                Py_XINCREF(other.obj);
+            PyRef(const PyRef& other) {
+                //std::cout << "Copy ctor" << std::endl;
+                obj = PySet_New(other.obj);
+                Py_XINCREF(obj);
             }
 
             PyRef(PyRef&& other) {
+                //std::cout << "Move ctor" << std::endl;
                 obj = other.obj;
                 other.obj = NULL;
             }
 
             PyRef& operator=(const PyRef& other) {
+                //std::cout << "Assignment" << std::endl;
                 Py_XDECREF(obj);
-                obj = PySet_New(other.obj);
+                obj = other.obj;
                 Py_XINCREF(obj);
                 return *this;
             }
 
             PyRef& operator=(PyRef&& other) {
+                //std::cout << "Move assignment" << std::endl;
                 Py_XDECREF(obj);
                 obj = PySet_New(other.obj);
                 Py_XINCREF(obj);
@@ -56,6 +65,7 @@ namespace PyPtr {
             }
 
             bool operator== (const PyRef &other) const {
+                //std::cout << "Equality" << std::endl;
                 return PyObject_RichCompareBool(obj, other.obj, Py_EQ);
             }
     };
