@@ -2,12 +2,20 @@
 # cython: language_level = 3
 
 import sys
+import HTSeq
+
 from cython.operator cimport dereference as deref, preincrement as inc
 
 cdef class StepVector:
 
+    @classmethod
+    def create(cls, *args, **kwargs):
+        cdef StepVector self = StepVector(*args, **kwargs)
+        StepVector._construct_wrapper(self)
+        return self
+
     def __cinit__(self, length = sys.maxsize, typecode = 'O', start_index = 0):
-        self.c_step = new _StepVector[PyRef]()
+        self.c_step = NULL
         self._typecode = ord(typecode)
         self.start = start_index
         self.stop = start_index + length
@@ -164,3 +172,8 @@ cdef class StepVector:
     def __eq__(self, other): pass
     def __reduce__(self): pass
     def apply(self, func, start=None, stop=None): pass
+
+    @property
+    def __class__(self):
+        """~~master_of_disguise.exe~~"""
+        return HTSeq.StepVector.StepVector
