@@ -4,7 +4,7 @@
 from cpython.ref cimport PyObject
 from cython.operator cimport dereference as deref, preincrement as inc, address
 
-from _stepvector cimport _StepVector, PyRef
+from CyStep._stepvector cimport _StepVector, PyRef
 ctypedef PyObject* PyPtr
 
 def main():
