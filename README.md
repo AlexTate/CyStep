@@ -1,4 +1,4 @@
-# CyStep: a Cython conversion of HTSeq's StepVector
+# CyStep: a Cython implementation of HTSeq's StepVector
 
 This project addresses performance issues associated with the Swig implementation of HTSeq's StepVector. While there are memory issues that need to be addressed, initial testing shows runtimes have been reduced by as much as **70%**.
 
