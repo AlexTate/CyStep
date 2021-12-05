@@ -9,35 +9,35 @@ namespace PyPtr {
             PyObject* get() const {return obj;}
 
             PyRef() {
-                //std::cout << "Default ctor" << std::endl;
-                obj = PySet_New(NULL);
-                Py_XINCREF(obj);
+                //std::cout << "Default ctor " << obj << std::endl;
+                obj = NULL;
             }
 
             PyRef(PyObject* set_obj) : obj(set_obj) {
-                //std::cout << "Obj ctor" << std::endl;
+                //std::cout << "Obj ctor: " << obj << " ";
                 Py_XINCREF(set_obj);
             }
 
             ~PyRef() {
-                //std::cout << "Destructor" << std::endl;
-                Py_XDECREF(obj); obj = NULL;
+                //std::cout << "Destructor " << obj << std::endl;
+                Py_XDECREF(obj);
             }
 
             PyRef(const PyRef& other) {
-                //std::cout << "Copy ctor" << std::endl;
+                //std::cout << "Copy ctor " << obj << std::endl;
                 obj = PySet_New(other.obj);
                 Py_XINCREF(obj);
+                Py_XDECREF(other.obj); //try
             }
 
             PyRef(PyRef&& other) {
-                //std::cout << "Move ctor" << std::endl;
+                //std::cout << "Move ctor " << obj << std::endl;
                 obj = other.obj;
-                other.obj = NULL;
+                Py_XDECREF(other.obj);
             }
 
             PyRef& operator=(const PyRef& other) {
-                //std::cout << "Assignment" << std::endl;
+                //std::cout << "Assignment " << obj << std::endl;
                 Py_XDECREF(obj);
                 obj = other.obj;
                 Py_XINCREF(obj);
@@ -45,7 +45,7 @@ namespace PyPtr {
             }
 
             PyRef& operator=(PyRef&& other) {
-                //std::cout << "Move assignment" << std::endl;
+                //std::cout << "Move assignment " << obj << std::endl;
                 Py_XDECREF(obj);
                 obj = PySet_New(other.obj);
                 Py_XINCREF(obj);
@@ -61,6 +61,7 @@ namespace PyPtr {
             PyRef operator+ (const PyRef& other) {
                 PyRef result(PySet_New(obj));
                 _PySet_Update(result.obj, PyObject_GetIter(other.obj));
+                Py_XINCREF(result.obj);
                 return result;
             }
 
