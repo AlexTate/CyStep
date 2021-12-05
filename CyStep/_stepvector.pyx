@@ -4,7 +4,7 @@
 import sys
 import HTSeq
 
-from cython.operator cimport dereference as deref, preincrement as inc
+from cython.operator cimport dereference as deref, postincrement as cni
 
 cdef class StepVector:
 
@@ -66,13 +66,11 @@ cdef class StepVector:
             yield (self.start, self.stop, set())
             return
         else:
-            prevval = <set>deref(startvals).second.get()
-            inc(startvals)
+            prevval = <set>deref(cni(startvals)).second.get()
 
         while startvals != self.c_step.end():
-            pair = deref(startvals)
+            pair = deref(cni(startvals))
             stepstart, value = <long int>pair.first, <set>pair.second.get()
-            inc(startvals)
             if merge_steps and value == prevval:
                 continue
             if self.stop is not None and stepstart >= self.stop:
